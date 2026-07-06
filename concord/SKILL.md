@@ -1,6 +1,6 @@
 # Concord — Agent Privacy Handshake
 
-**Base URL:** `https://YOUR_RENDER_URL`
+**Base URL:** `https://concord-xybl.onrender.com`
 
 > **Cold start:** The free-tier instance may take ~50-60 seconds to wake up on the first request.
 
