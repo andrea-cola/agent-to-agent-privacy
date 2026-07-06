@@ -171,7 +171,7 @@ class TestCrossAgentProofReplay:
         hospital = _mk("hospital")
 
         root_a, salts_a, fields_a = _patient_credential(salt_seed=b"patient-a")
-        root_b, salts_b, fields_b = _patient_credential(salt_seed=b"patient-b")
+        root_b, _, _ = _patient_credential(salt_seed=b"patient-b")
 
         assert root_a != root_b, "different salt seeds must produce different roots"
 
@@ -287,7 +287,7 @@ class TestEncryptedMedicalExchange:
         snoop = _mk("snoop")
         hospital.register_peer(AgentId("insurer-a"), insurer.public_key)
 
-        root, salts, fields = _patient_credential()
+        _root, _salts, fields = _patient_credential()
         record = json.dumps(fields).encode()
         ct = await hospital.encrypt(record, [AgentId("insurer-a")])
 
@@ -309,12 +309,18 @@ class TestEncryptedMedicalExchange:
         hospital.register_peer(AgentId("insurer-a"), insurer_a.public_key)
         hospital.register_peer(AgentId("insurer-b"), insurer_b.public_key)
 
-        pre = await hospital.encrypt(b"pre-revocation record", [AgentId("insurer-a"), AgentId("insurer-b")])
+        pre = await hospital.encrypt(
+            b"pre-revocation record",
+            [AgentId("insurer-a"), AgentId("insurer-b")],
+        )
         assert await insurer_a.decrypt(pre) == b"pre-revocation record"
 
         hospital.revoke(AgentId("insurer-a"))
 
-        post = await hospital.encrypt(b"post-revocation record", [AgentId("insurer-a"), AgentId("insurer-b")])
+        post = await hospital.encrypt(
+            b"post-revocation record",
+            [AgentId("insurer-a"), AgentId("insurer-b")],
+        )
         assert await insurer_b.decrypt(post) == b"post-revocation record"
         try:
             await insurer_a.decrypt(post)
