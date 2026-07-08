@@ -16,23 +16,34 @@ They have never spoken before. There is no shared trust agreement. One is in the
 
 ---
 
+## Setting up: Installing Concord as an OpenClaw Skill
+
+The jury's OpenClaw agent needs to know about Concord. One command:
+
+```
+copy the folder concord/openclaw-skill/concord into ~/.openclaw/skills/
+then start a new session
+```
+
+Or just tell your OpenClaw agent:
+
+> *"Install the Concord skill from https://concord-xybl.onrender.com"*
+
+Once loaded, the agent knows how to privacy-check any text before forwarding it.
+
+---
+
 ## Act 1 — The Handshake
 
-Agent A wants to forward this case note to Agent B:
+The jury asks their OpenClaw agent:
 
-> *"Customer Mario Rossi, mario.rossi@example.it, located in Milano, IBAN IT60X0542811101000000123456, card 4539 1488 0343 6467. Medical diagnosis: type-2 diabetes, treatment: metformin. Secret key: sk-live-9fJ2kXyz. National ID: RSSMRA85M01F205Z."*
+> *"Privacy-check this before sending it to the analytics team:*
+> *Customer Mario Rossi, mario.rossi@example.it, located in Milano,*
+> *IBAN IT60X0542811101000000123456, card 4539 1488 0343 6467.*
+> *Medical diagnosis: type-2 diabetes, treatment: metformin.*
+> *Secret key: sk-live-9fJ2kXyz. National ID: RSSMRA85M01F205Z."*
 
-Before sending a single byte, Agent A calls Concord:
-
-```bash
-POST /v1/negotiate
-{
-  "sender_profile":    "finance-agent-01",
-  "recipient_profile": "analytics-agent-07",
-  "persona":           "gdpr_safe",
-  "payload":           "Customer Mario Rossi, mario.rossi@example.it ..."
-}
-```
+The OpenClaw agent calls Concord's `/v1/negotiate` endpoint — using `finance-agent-01` as sender, `analytics-agent-07` as recipient, `gdpr_safe` persona — and reports back.
 
 ---
 
@@ -51,13 +62,15 @@ Concord scans the payload, detects 10 PII findings across 6 categories, and nego
 | MEDICAL | diagnosis, diabetes, metformin | **REJECT** | analytics-agent-07 rejects medical data |
 | SECRET | sk-live-9fJ2kXyz | **REJECT** | Kill set — never forwarded under any persona |
 
-**Verdict: `CLEARED WITH HOLDS`**
-**Inbound risk: 100 (high) → Residual risk: 0 (low)**
-**Cross-border flag: IT/EU → US/US (no GDPR adequacy)**
+The OpenClaw agent replies:
 
-The safe payload Agent A can forward:
-
-> *"Customer [REDACTED], [CONTACT_01], located in [LOCATION_01], IBAN [FINANCIAL_01], card [FINANCIAL_02]. Medical [REDACTED]: type-2 [REDACTED], [REDACTED]: metformin. Secret key: [REDACTED]. National ID: [REDACTED]."*
+> *"Verdict: CLEARED WITH HOLDS. I've redacted the payload. Here's what's safe to send:*
+>
+> *"Customer [REDACTED], [CONTACT_01], located in [LOCATION_01], IBAN [FINANCIAL_01],*
+> *card [FINANCIAL_02]. Medical [REDACTED]. Secret key: [REDACTED]. National ID: [REDACTED]."*
+>
+> *Inbound risk was HIGH (100). Residual risk is LOW (0). Transfer ID: trf_8fe52f7555c0.*
+> *Cross-border flag raised: IT/EU → US/US, no GDPR adequacy."*
 
 The API secret never left. The name never left. The medical record never left.
 
@@ -65,71 +78,68 @@ The API secret never left. The name never left. The medical record never left.
 
 ## Act 3 — The Recall
 
-Two hours later, a compliance officer at Agent A's institution needs to reconstruct the original message for an audit trail.
+The jury asks:
 
-They call:
+> *"Actually, I need the original email address back. Restore it using transfer trf_8fe52f7555c0."*
 
-```bash
-POST /v1/rehydrate
-{
-  "transfer_id": "trf_8fe52f7555c0",
-  "text":        "Customer [REDACTED], [CONTACT_01], ...",
-  "agent_id":    "finance-agent-01"
-}
-```
+The OpenClaw agent calls `/v1/rehydrate` with `agent_id: finance-agent-01` and replies:
 
-Concord checks: same sender? Yes. TTL expired? No.
+> *"Done. Original text restored: mario.rossi@example.it."*
 
-Response: the original text, fully restored.
+Then the jury asks:
 
-Agent B tries the same call. Gets `403 Forbidden` — only the original sender holds the key.
+> *"What if the analytics team tries to do the same?"*
+
+The agent tries with `agent_id: analytics-agent-07`. Concord returns `403`.
+
+> *"Blocked. Only the original sender can rehydrate. The analytics team can't access the vault."*
 
 ---
 
 ## Act 4 — The Audit
 
-The regulator asks for proof that the transfer was handled correctly.
+The jury asks:
 
-```bash
-GET /v1/attestation/trf_8fe52f7555c0
-```
+> *"Show me the signed audit record for this transfer."*
 
-Response: a signed record — sender, recipient, persona, verdict, risk scores, timestamp — all HMAC-SHA256 signed at transfer time. Immutable. Tamper-evident.
+The OpenClaw agent calls `/v1/attestation/trf_8fe52f7555c0` and returns:
 
-```json
-{
-  "sender": "finance-agent-01",
-  "recipient": "analytics-agent-07",
-  "verdict": "CLEARED WITH HOLDS",
-  "inbound_risk": 100,
-  "residual_risk": 0,
-  "cross_border": true,
-  "signed": true,
-  "alg": "hmac-sha256",
-  "sig": "eeb38d0a..."
-}
-```
+> *"Here's the signed record: sender finance-agent-01, recipient analytics-agent-07,*
+> *persona gdpr\_safe, verdict CLEARED WITH HOLDS, inbound risk 100, residual risk 0,*
+> *cross-border: true. Signed with HMAC-SHA256.*
+> *Signature: eeb38d0a..."*
+
+Immutable. Tamper-evident. Produced at transfer time, not after the fact.
 
 ---
 
 ## The Point
 
-No human reviewed this transfer. No policy document was consulted. No compliance team was cc'd.
+The jury didn't write a policy. They didn't configure a firewall. They didn't consult a lawyer.
 
-Two agents negotiated the terms of a data exchange in under a second, enforced GDPR cross-border rules automatically, and produced a signed audit trail — all without the data ever reaching a party that wasn't supposed to see it.
+They asked their OpenClaw agent to check a message — and got back:
+- a safe payload their analytics partner can actually receive
+- a per-category explanation of every decision
+- a rehydration vault only the sender can access
+- a signed audit trail for the regulator
 
-That is what Concord does.
+Two agents negotiated a cross-border data exchange in under a second, enforced GDPR automatically, and left a paper trail — without a human in the loop.
+
+**That is what Concord does.**
 
 ---
 
-## Run It Yourself
+## Try It Yourself
+
+Tell your OpenClaw agent:
+
+> *"Privacy-check this text before sending to analytics-agent-07 using the gdpr_safe persona:
+> [your text here]"*
+
+Or run the demo script directly:
 
 ```bash
-# Against the live service
 ./concord/demo.sh https://concord-xybl.onrender.com
-
-# Or locally
-pip install -r concord/requirements.txt
-uvicorn concord.main:app --port 8000
-./concord/demo.sh
 ```
+
+Live endpoint: **https://concord-xybl.onrender.com**
