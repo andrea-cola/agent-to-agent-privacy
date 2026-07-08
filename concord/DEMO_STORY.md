@@ -18,16 +18,14 @@ They have never spoken before. There is no shared trust agreement. One is in the
 
 ## Setting up: Installing Concord as an OpenClaw Skill
 
-The jury's OpenClaw agent needs to know about Concord. One command:
+The jury's OpenClaw agent needs to know about Concord. Copy the skill file into your OpenClaw skills folder:
 
+```bash
+mkdir -p ~/.openclaw/skills/concord
+cp concord/SKILL.md ~/.openclaw/skills/concord/SKILL.md
 ```
-copy the folder concord/openclaw-skill/concord into ~/.openclaw/skills/
-then start a new session
-```
 
-Or just tell your OpenClaw agent:
-
-> *"Install the Concord skill from https://concord-xybl.onrender.com"*
+Then start a new session (`/new` in chat). OpenClaw reads `concord/SKILL.md` directly — no extra config, no API key, no build step.
 
 Once loaded, the agent knows how to privacy-check any text before forwarding it.
 
