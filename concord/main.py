@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import time
+from pathlib import Path
 from typing import Any, Union
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
 from attestation import get_attestation, sign_and_store
@@ -66,6 +67,12 @@ class ProfileCreateRequest(BaseModel):
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
+
+@app.get("/SKILL.md", response_class=PlainTextResponse)
+def skill_md() -> str:
+    skill_path = Path(__file__).parent / "SKILL.md"
+    return skill_path.read_text()
+
 
 @app.get("/health")
 def health() -> dict:
