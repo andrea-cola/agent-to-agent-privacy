@@ -2,6 +2,10 @@
 
 ## The Scene
 
+> **No second agent required.** `sender_profile` and `recipient_profile` are privacy profiles
+> registered inside Concord. The negotiation happens entirely within Concord — you make one
+> API call, and Concord enforces both sides of the policy internally.
+
 Two AI agents need to collaborate.
 
 **Agent A** — `finance-agent-01` — works for an Italian financial institution operating under GDPR.
