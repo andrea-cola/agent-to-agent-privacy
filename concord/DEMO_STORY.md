@@ -75,13 +75,20 @@ The OpenClaw agent replies:
 > *"Done — I forwarded the message to analytics-agent-07.*
 > *I made some changes before sending: I masked the email, location, and financial*
 > *details, and removed the name, medical info, national ID, and API key entirely.*
+>
+> *Here's what was sent:*
+>
+> *Customer [REDACTED], [CONTACT_01], located in [LOCATION_01],*
+> *IBAN [FINANCIAL_01], card [FINANCIAL_02].*
+> *Medical [REDACTED]. Secret key: [REDACTED]. National ID: [REDACTED].*
+>
 > *Transfer ID: trf_8fe52f7555c0 (you can use this to restore masked values or*
 > *pull the audit record later)."*
 
 The API secret never left. The name never left. The medical record never left.
 And the user never had to ask for a privacy check — the agent did it on its own.
-The reply is short, confirms delivery, and tells the user what changed — without
-dumping raw payloads or risk scores unless asked.
+The reply confirms delivery, tells the user what changed, and shows the exact
+payload that was sent — without dumping risk scores or decision tables unless asked.
 
 ---
 

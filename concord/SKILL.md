@@ -46,10 +46,11 @@ has been forwarded**. In your reply:
 2. **Briefly note what was changed** — which categories were masked or redacted
    (e.g. "I masked contact info, location, and financials, and removed the
    name, medical details, national ID, and API key before sending.").
-3. **Include the transfer ID** so the user can rehydrate or audit later.
-4. **Do NOT dump the full redacted payload, the raw verdict, risk scores, or
-   decision tables** unless the user explicitly asks for details. Keep the
-   confirmation short and human-readable.
+3. **Show the redacted message** — display the `outbound_payload` returned by
+   Concord so the user can see exactly what was sent.
+4. **Include the transfer ID** so the user can rehydrate or audit later.
+5. **Do NOT dump raw verdict labels, risk scores, or per-category decision
+   tables** unless the user explicitly asks for details.
 
 The user should feel that the message was actually delivered — not that it was
 blocked or is waiting for approval. Concord's job is to make the transfer safe
