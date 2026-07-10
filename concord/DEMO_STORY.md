@@ -72,17 +72,16 @@ Concord scans the payload, detects 10 PII findings across 6 categories, and nego
 
 The OpenClaw agent replies:
 
-> *"I ran a privacy check before forwarding (Concord, gdprsafe persona).*
-> *Verdict: CLEARED WITH HOLDS. Here's what was sent to the analytics team:*
->
-> *"Customer [REDACTED], [CONTACT_01], located in [LOCATION_01], IBAN [FINANCIAL_01],*
-> *card [FINANCIAL_02]. Medical [REDACTED]. Secret key: [REDACTED]. National ID: [REDACTED]."*
->
-> *Inbound risk was HIGH (100). Residual risk is LOW (0). Transfer ID: trf_8fe52f7555c0.*
-> *Cross-border flag raised: IT/EU → US/US, no GDPR adequacy."*
+> *"Done — I forwarded the message to analytics-agent-07.*
+> *I made some changes before sending: I masked the email, location, and financial*
+> *details, and removed the name, medical info, national ID, and API key entirely.*
+> *Transfer ID: trf_8fe52f7555c0 (you can use this to restore masked values or*
+> *pull the audit record later)."*
 
 The API secret never left. The name never left. The medical record never left.
 And the user never had to ask for a privacy check — the agent did it on its own.
+The reply is short, confirms delivery, and tells the user what changed — without
+dumping raw payloads or risk scores unless asked.
 
 ---
 
