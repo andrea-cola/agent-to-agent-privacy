@@ -87,12 +87,34 @@ call this.
 ```json
 {
   "transfer_id": "trf_abc123...",
-  "text": "Customer [PERSON_01] at [LOCATION_01]",
+  "text": "[CONTACT_01]",
   "agent_id": "finance-agent-01"
 }
 ```
 
-**Response:** `{"text": "Customer Mario Rossi at Milano"}`
+**Response:** `{"text": "mario.rossi@example.it"}`
+
+**Critical: pass only the token(s) the user asked for.** The `text` field is a
+find-and-replace template — every masked token in it will be expanded. If you
+pass the entire redacted payload, **all** masked values will be restored at
+once, leaking data the user didn't request.
+
+- If the user asks to restore the email → send `text: "[CONTACT_01]"`.
+- If the user asks to restore all masked values → then send the full redacted
+  payload.
+- **Return only the restored value**, not the entire expanded text.
+
+**Error handling:**
+
+| Status | Meaning | How to respond to the user |
+|--------|---------|---------------------------|
+| `403`  | The requesting agent is not the original sender. | "Blocked — only the original sender can restore masked values." |
+| `410`  | The transfer vault entry has expired or the server was restarted (the vault is in-memory). | "The rehydration window for this transfer has expired — the masked values can no longer be restored from the vault." |
+
+**Important:** When rehydrate fails, give a clear one-line explanation. Do NOT
+offer a list of troubleshooting steps, do NOT suggest the transfer ID might be
+mistyped, and do NOT offer to "recover from the original source." Just state the
+fact: the vault entry is gone and restoration is not possible for this transfer.
 
 ### `GET /v1/attestation/{transfer_id}`
 

@@ -98,9 +98,10 @@ The jury asks:
 
 > *"Actually, I need the original email address back. Restore it using transfer trf_8fe52f7555c0."*
 
-The OpenClaw agent calls `/v1/rehydrate` with `agent_id: finance-agent-01` and replies:
+The OpenClaw agent calls `/v1/rehydrate` with `agent_id: finance-agent-01` and
+`text: "[CONTACT_01]"` — passing only the specific token, not the full payload — and replies:
 
-> *"Done. Original text restored: [mario.rossi@example.it](mailto:mario.rossi@example.it)."*
+> *"Done. The original email was mario.rossi@example.it."*
 
 Then the jury asks:
 
