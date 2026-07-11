@@ -130,7 +130,7 @@ Immutable. Tamper-evident. Produced at transfer time, not after the fact.
 
 ---
 
-## The Point
+## The Point (Finance Scenario)
 
 The jury didn't write a policy. They didn't configure a firewall. They didn't consult a lawyer.
 They didn't even ask for a privacy check.
@@ -145,6 +145,164 @@ They said *"forward this"* — and got back:
 Two agents negotiated a cross-border data exchange in under a second, enforced GDPR automatically, and left a paper trail — **without a human in the loop and without an explicit privacy instruction.**
 
 **The skill made the agent privacy-aware. That is what Concord does.**
+
+---
+---
+
+# Scenario B — Medical: Clinical Trial Data Sharing
+
+## The Scene
+
+A completely different domain, different rules, different outcome.
+
+**Agent C** — `hospital-agent-eu` — works for Ospedale San Raffaele in Italy.
+It operates under both GDPR and HIPAA. It has a patient case that qualifies for
+a clinical trial and wants to share the clinical data with a pharma partner.
+
+**Agent D** — `pharma-research-agent` — is NovaPharma Inc, a US-based
+pharmaceutical research company. It accepts **medical and technical data only**.
+No names, no contact info, no financials, no national IDs — it doesn't want to
+know *who* the patient is, only *what* the clinical picture looks like.
+
+They use the `medical_safe` persona, which is designed for exactly this:
+**strip identity, let clinical data flow.**
+
+**The question:** Can a hospital share a patient case for a drug trial — and
+if so, what gets through and what gets stripped?
+
+---
+
+## Act 5 — The Clinical Handoff
+
+The jury tells their agent:
+
+> *"Share this patient case with the pharma research team for the clinical trial:*
+> *Patient Giulia Bianchi, giulia.bianchi@sanraffaele.it, located in Milano.*
+> *National ID: BNCGLI90A41F205X. Blood type: A+.*
+> *Diagnosis: type-2 diabetes with hypertension. HbA1c: 8.2%, creatinine: 1.1 mg/dL.*
+> *Current treatment: metformin 1000mg twice daily, lisinopril 10mg daily.*
+> *Adverse event reported: mild hypoglycemia on day 14.*
+> *Trial eligibility: randomized double-blind Phase III, cohort B.*
+> *Hospital invoice: IBAN IT60X0542811101000000654321."*
+
+The jury said *"share this with pharma"* — not *"privacy-check this."*
+
+The agent, following the Concord skill, **autonomously** calls `/v1/negotiate`
+using `hospital-agent-eu` as sender, `pharma-research-agent` as recipient,
+and `medical_safe` as persona.
+
+---
+
+## Act 6 — The Medical Verdict
+
+Concord scans the payload and produces a fundamentally different outcome from the
+finance scenario. This time, the **medical data flows through** — because that's
+exactly what the pharma partner needs and the persona allows:
+
+| Category  | Finding                          | Decision                    | Why                                                         |
+| --------- | -------------------------------- | --------------------------- | ----------------------------------------------------------- |
+| PERSON    | Giulia Bianchi                   | **REJECT**                  | pharma-research-agent rejects personal names                |
+| CONTACT   | giulia.bianchi@sanraffaele.it    | **REJECT**                  | pharma-research-agent rejects contact info                  |
+| LOCATION  | Milano                           | **MASK** → `[LOCATION_01]`  | medical_safe persona masks location                         |
+| NATIONAL  | BNCGLI90A41F205X                 | **REJECT**                  | pharma-research-agent rejects national IDs                  |
+| FINANCIAL | IBAN IT60X…                      | **REJECT**                  | pharma-research-agent rejects financial data                |
+| MEDICAL   | diabetes, hypertension, HbA1c, creatinine, metformin, lisinopril, hypoglycemia, etc. | **SHARE** | medical_safe lets medical data through — pharma needs it |
+| TECHNICAL | cohort B, Phase III, randomized double-blind | **SHARE**         | technical/trial metadata accepted by recipient              |
+
+The agent replies:
+
+> *"Done — I forwarded the patient case to pharma-research-agent.*
+> *The pharma partner explicitly rejects names, contact info, national IDs, and*
+> *financial data — so those were removed entirely. Location was masked. All*
+> *clinical data — diagnosis, lab values, treatment, and adverse events — went*
+> *through as-is, because the pharma partner needs it and the medical_safe*
+> *persona allows it.*
+>
+> *Here's what was sent:*
+>
+> *Patient [REDACTED], [REDACTED], located in [LOCATION_01].*
+> *National ID: [REDACTED]. Blood type: A+.*
+> *Diagnosis: type-2 diabetes with hypertension. HbA1c: 8.2%, creatinine: 1.1 mg/dL.*
+> *Current treatment: metformin 1000mg twice daily, lisinopril 10mg daily.*
+> *Adverse event reported: mild hypoglycemia on day 14.*
+> *Trial eligibility: randomized double-blind Phase III, cohort B.*
+> *Hospital invoice: [REDACTED].*
+>
+> *Transfer ID: trf_a4c1e09b3d77."*
+
+The pharma team gets everything they need for the trial — diagnosis, labs,
+medications, adverse events — but has **zero way to identify the patient**.
+Name, email, fiscal code, and IBAN were rejected outright (irreversible).
+Only the location was masked (reversible, rehydratable by the hospital).
+
+---
+
+## Act 7 — The Contrast
+
+The jury asks:
+
+> *"What would have happened if I had sent the same patient case to the analytics team instead?"*
+
+The agent re-runs the negotiation with `analytics-agent-07` as recipient and
+`gdpr_safe` persona. This time the outcome flips:
+
+> *"Very different result. analytics-agent-07 rejects all medical data, so the*
+> *diagnosis, lab values, treatment, and adverse events would all be [REDACTED].*
+> *The analytics team would receive almost nothing useful — the clinical data*
+> *they can't accept is the whole point of the message.*
+>
+> *This is why the recipient profile matters: pharma-research-agent is configured*
+> *to accept MEDICAL data, analytics-agent-07 is not."*
+
+Same payload. Same sender. Different recipient → completely different outcome.
+The negotiation is **bilateral**, not one-size-fits-all.
+
+---
+
+## Act 8 — Selective Recall and Rejection Boundaries
+
+The jury asks:
+
+> *"The patient consented to share their name. Restore it from transfer trf_a4c1e09b3d77."*
+
+The agent recognizes that the name was **rejected**, not masked — rejected
+fields become `[REDACTED]` with no numbered token and no vault entry.
+There is nothing to rehydrate.
+
+> *"I can't restore the name — it was rejected by the pharma partner's profile,*
+> *not masked. Rejected data is permanently removed and never enters the vault.*
+> *Only masked fields like the location (`[LOCATION_01]`) can be rehydrated."*
+
+Then the jury asks:
+
+> *"OK, restore the location instead."*
+
+The agent calls `/v1/rehydrate` with `text: "[LOCATION_01]"`:
+
+> *"Done. The location was Milano."*
+
+This demonstrates a key distinction: **MASK** is reversible (the sender can
+recall it later), **REJECT** is permanent (the data never enters the vault).
+The pharma partner's profile drove the rejections — not the persona — showing
+that both sides of the negotiation have real power over the outcome.
+
+---
+
+## The Point (Medical Scenario)
+
+The finance scenario showed Concord *blocking* sensitive data from leaving.
+The medical scenario shows the opposite: Concord **letting the right data through**
+while stripping only what must not cross.
+
+- Same engine, same API call — different persona, different profiles, completely different outcome
+- The `medical_safe` persona is purpose-built for clinical data sharing: identity out, medicine in
+- The pharma partner got everything needed for the trial and nothing that identifies the patient
+- **REJECT vs MASK** — the recipient's profile drove permanent rejection of names, emails,
+  financials, and national IDs; the persona drove reversible masking of location. Both mechanisms
+  coexist in a single negotiation, and the user can see which fields are recoverable and which are gone
+- A signed audit trail proves exactly what crossed and what didn't — ready for HIPAA/GDPR review
+
+**Two agents in different jurisdictions, different regulations, different needs — and Concord found the exact intersection of what both sides allow, autonomously.**
 
 ---
 

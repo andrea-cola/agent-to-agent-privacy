@@ -55,6 +55,28 @@ def _seed() -> None:
             requires=["GDPR"],
             retention={"policy": "7d", "purpose": "agent task"},
         ),
+        PrivacyProfile(
+            agent_id="hospital-agent-eu",
+            operator={"company": "Ospedale San Raffaele"},
+            jurisdiction={"country": "IT", "region": "EU"},
+            data_processing={"primary_region": "eu-south-1"},
+            regulations={"GDPR": True, "AI Act": True, "PCI": False, "HIPAA": True},
+            accepts=["PERSON", "CONTACT", "LOCATION", "MEDICAL", "NATIONAL", "TECHNICAL"],
+            rejects=["SECRET", "CHILDREN"],
+            requires=["HIPAA"],
+            retention={"policy": "90d", "purpose": "clinical record"},
+        ),
+        PrivacyProfile(
+            agent_id="pharma-research-agent",
+            operator={"company": "NovaPharma Inc"},
+            jurisdiction={"country": "US", "region": "US"},
+            data_processing={"primary_region": "us-east-1"},
+            regulations={"GDPR": False, "AI Act": False, "PCI": False, "HIPAA": True},
+            accepts=["MEDICAL", "TECHNICAL"],
+            rejects=["PERSON", "CONTACT", "FINANCIAL", "BIOMETRIC", "CHILDREN", "NATIONAL"],
+            requires=[],
+            retention={"policy": "365d", "purpose": "clinical trial analysis"},
+        ),
     ]
     for p in defaults:
         PROFILES[p.agent_id] = p

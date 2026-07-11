@@ -113,6 +113,12 @@ _MEDICAL_KEYWORDS = [
     "diagnosis", "treatment", "prescription", "medication", "surgery", "biopsy",
     "hiv", "hepatitis", "asthma", "allergy", "cardiac", "therapy", "psychiatric",
     "depression", "anxiety", "epilepsy", "dialysis", "transplant",
+    "metformin", "lisinopril", "atorvastatin", "omeprazole", "amoxicillin",
+    "ibuprofen", "paracetamol", "warfarin", "prednisone", "azithromycin",
+    "clinical trial", "adverse event", "dosage", "efficacy", "placebo",
+    "randomized", "double-blind", "cohort", "biomarker", "pathology",
+    "remission", "relapse", "prognosis", "anemia", "arrhythmia",
+    "cholesterol", "glycemia", "hba1c", "creatinine", "hemoglobin",
 ]
 _MEDICAL_RE = re.compile(
     r"\b(" + "|".join(re.escape(k) for k in _MEDICAL_KEYWORDS) + r")\b", re.IGNORECASE
@@ -143,7 +149,7 @@ def _detect_biometric(text: str) -> list[Finding]:
 
 
 _CITIES = [
-    "Milano", "Roma", "Napoli", "Torino", "Firenze", "Bologna", "Palermo",
+    "Milano", "Roma", "Rome", "Napoli", "Torino", "Firenze", "Bologna", "Palermo",
     "Genova", "Venezia", "Verona", "New York", "London", "Paris", "Berlin",
     "Tokyo", "Shanghai", "Mumbai", "São Paulo", "Los Angeles", "Chicago",
     "San Francisco", "Boston", "Amsterdam", "Brussels", "Zurich", "Geneva",

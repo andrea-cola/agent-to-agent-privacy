@@ -131,9 +131,9 @@ Returns `{"status": "ok"}`.
 ## 4-step usage pattern
 
 1. **Register (optional):** `POST /v1/profile` with the sender's privacy
-   profile (jurisdiction, accepted categories, regulations). Three demo
+   profile (jurisdiction, accepted categories, regulations). Five demo
    profiles are pre-loaded: `finance-agent-01`, `analytics-agent-07`,
-   `openclaw-demo-agent`.
+   `openclaw-demo-agent`, `hospital-agent-eu`, `pharma-research-agent`.
 
 2. **Negotiate:** `POST /v1/negotiate` with `sender_profile`,
    `recipient_profile`, `persona`, and `payload`. The response contains the
